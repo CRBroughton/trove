@@ -1,0 +1,19 @@
+# Go build output
+/trove
+/relic
+
+# UI build output (populated by: pnpm build)
+# index.html stub committed so go:embed compiles without a UI build
+/internal/embed/dist/*
+!/internal/embed/dist/index.html
+
+# Node
+/node_modules/
+/ui/node_modules/
+
+# Save files (managed by the server, not source)
+*.srm
+*.sav
+*.state
+
+result

@@ -1,0 +1,26 @@
+{
+  "name": "trove",
+  "private": true,
+  "scripts": {
+    "dev":       "pnpm -F trove-ui dev",
+    "build":     "pnpm -F trove-ui build",
+    "test":      "pnpm -F trove-ui test",
+    "typecheck": "pnpm -F trove-ui typecheck",
+    "lint":      "pnpm -F trove-ui lint"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "catalog:lint",
+    "@eslint-react/eslint-plugin": "catalog:lint",
+    "@testing-library/jest-dom": "catalog:testing",
+    "@testing-library/react": "catalog:testing",
+    "@types/react": "catalog:types",
+    "@types/react-dom": "catalog:types",
+    "@vitejs/plugin-react": "catalog:build",
+    "eslint": "catalog:lint",
+    "eslint-plugin-react-refresh": "catalog:lint",
+    "jsdom": "catalog:testing",
+    "typescript": "catalog:build",
+    "vite": "catalog:build",
+    "vitest": "catalog:testing"
+  }
+}
