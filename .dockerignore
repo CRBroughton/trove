@@ -1,0 +1,20 @@
+# Git history not needed in build context
+.git
+
+# Node modules — rebuilt inside Docker
+ui/node_modules
+
+# React build output — rebuilt inside Docker
+internal/embed/dist
+
+# NixOS files not needed for Docker
+nix/
+
+# Dev artifacts
+*.srm
+*.sav
+*.state*
+
+# Misc
+.DS_Store
+*.md
