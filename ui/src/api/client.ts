@@ -1,0 +1,28 @@
+import type { Commit, FileEntry } from '../types'
+
+async function request<T>(url: string, init?: RequestInit): Promise<T> {
+  const r = await fetch(url, init)
+  if (!r.ok) {
+    const body = await r.text().catch(() => '')
+    throw new Error(`${r.status} ${r.statusText}${body ? `: ${body}` : ''}`)
+  }
+  return r.json() as Promise<T>
+}
+
+export const api = {
+  files(): Promise<FileEntry[]> {
+    return request<FileEntry[]>('/api/files')
+  },
+
+  history(path: string): Promise<Commit[]> {
+    return request<Commit[]>(`/api/history/${path}`)
+  },
+
+  restore(path: string, hash: string): Promise<{ status: string, path: string, hash: string }> {
+    return request(`/api/restore/${path}?hash=${encodeURIComponent(hash)}`, { method: 'POST' })
+  },
+
+  pullUrl(path: string): string {
+    return `/api/pull/${path}`
+  },
+}
