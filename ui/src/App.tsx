@@ -6,6 +6,29 @@ import { SkeletonGroup } from './components/Skeleton'
 import { SystemGroup } from './components/SystemGroup'
 import { groupBySystem } from './utils/format'
 
+const btnBase: React.CSSProperties = {
+  background: 'var(--surface)',
+  border: '2px solid var(--border)',
+  color: 'var(--text)',
+  fontFamily: 'var(--sans)',
+  fontWeight: 700,
+  cursor: 'pointer',
+  boxShadow: 'var(--shadow-sm)',
+  transition: 'transform var(--transition), box-shadow var(--transition)',
+  lineHeight: 1.2,
+  letterSpacing: 0.5,
+}
+
+function pressBtnIn(e: React.MouseEvent<HTMLElement>) {
+  e.currentTarget.style.transform = 'translate(2px, 2px)'
+  e.currentTarget.style.boxShadow = '0px 0px 0 var(--border)'
+}
+
+function pressBtnOut(e: React.MouseEvent<HTMLElement>) {
+  e.currentTarget.style.transform = 'translate(0, 0)'
+  e.currentTarget.style.boxShadow = 'var(--shadow-sm)'
+}
+
 export default function App() {
   const [files, setFiles] = useState<FileEntry[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -35,9 +58,7 @@ export default function App() {
     }
   }, [])
 
-  useEffect(() => {
-    void load()
-  }, [load])
+  useEffect(() => { void load() }, [load])
 
   const filtered = files?.filter(f =>
     f.path.toLowerCase().includes(search.toLowerCase()),
@@ -46,29 +67,29 @@ export default function App() {
   const grouped = groupBySystem(filtered)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', padding: 16, gap: 12 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', padding: 20, gap: 16 }}>
       {/* Header */}
       <header style={{
         display: 'flex',
         flexDirection: 'column',
         gap: 10,
-        padding: '12px 16px',
+        padding: '14px 18px',
         background: 'var(--surface)',
-        borderRadius: 'var(--radius)',
+        border: '2px solid var(--border)',
         boxShadow: 'var(--shadow)',
         flexShrink: 0,
       }}
       >
-        {/* Row 1: logo + count + buttons */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{
             background: 'var(--accent)',
-            color: '#fff',
-            fontWeight: 800,
-            fontSize: 16,
-            letterSpacing: 2,
-            padding: '5px 18px',
-            borderRadius: 'var(--radius-pill)',
+            color: '#0a0a0a',
+            fontWeight: 900,
+            fontSize: 14,
+            letterSpacing: 3,
+            padding: '6px 18px',
+            border: '2px solid #0a0a0a',
+            boxShadow: '3px 3px 0 #0a0a0a',
             flexShrink: 0,
           }}
           >
@@ -76,7 +97,7 @@ export default function App() {
           </div>
 
           {!isMobile && (
-            <span style={{ color: 'var(--muted)', fontSize: 13 }}>
+            <span style={{ color: 'var(--muted)', fontSize: 13, fontWeight: 600 }}>
               {files ? `${files.length} saves` : '…'}
             </span>
           )}
@@ -86,73 +107,64 @@ export default function App() {
           <button
             onClick={() => { void load() }}
             style={{
-              background: 'var(--surface2)',
-              border: '2px solid var(--border)',
-              color: 'var(--muted)',
-              borderRadius: 'var(--radius-pill)',
+              ...btnBase,
               padding: isMobile ? '6px 12px' : '6px 16px',
-              fontSize: isMobile ? 16 : 14,
-              fontWeight: 700,
-              cursor: 'pointer',
-              transition: 'all 0.15s',
-              lineHeight: 1,
+              fontSize: isMobile ? 16 : 13,
             }}
             title="Refresh"
-            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent)'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+            onMouseEnter={pressBtnIn}
+            onMouseLeave={pressBtnOut}
           >
-            {isMobile ? '↻' : '↻ refresh'}
+            {isMobile ? '↻' : '↻ REFRESH'}
           </button>
 
           <button
             onClick={() => setDark(d => !d)}
-            style={{
-              background: 'var(--surface2)',
-              border: '2px solid var(--border)',
-              color: 'var(--muted)',
-              borderRadius: 'var(--radius-pill)',
-              padding: '6px 12px',
-              fontSize: 16,
-              cursor: 'pointer',
-              transition: 'all 0.15s',
-              lineHeight: 1,
-            }}
+            style={{ ...btnBase, padding: '6px 12px', fontSize: 16 }}
             title={dark ? 'Light mode' : 'Dark mode'}
+            onMouseEnter={pressBtnIn}
+            onMouseLeave={pressBtnOut}
           >
             {dark ? '☀️' : '🌙'}
           </button>
         </div>
 
-        {/* Row 2: search (full width) */}
         <input
           type="text"
-          placeholder="🔍 filter saves…"
+          placeholder="Filter saves…"
           value={search}
           onChange={e => setSearch(e.target.value)}
+          onFocus={e => {
+            e.currentTarget.style.boxShadow = '4px 4px 0 var(--accent)'
+          }}
+          onBlur={e => {
+            e.currentTarget.style.boxShadow = 'var(--shadow-sm)'
+          }}
           style={{
             width: '100%',
-            background: 'var(--surface2)',
+            background: 'var(--surface)',
             border: '2px solid var(--border)',
-            borderRadius: 'var(--radius-pill)',
-            padding: '8px 18px',
+            padding: '10px 18px',
             color: 'var(--text)',
             fontFamily: 'var(--sans)',
             fontSize: 14,
-            fontWeight: 500,
+            fontWeight: 600,
             outline: 'none',
+            boxShadow: 'var(--shadow-sm)',
+            transition: 'box-shadow var(--transition)',
           }}
         />
       </header>
 
       {/* Main */}
-      <div style={{ display: 'flex', flex: 1, gap: 12, overflow: 'hidden' }}>
-        {/* File list — hidden on mobile when history panel is open */}
+      <div style={{ display: 'flex', flex: 1, gap: 16, overflow: 'hidden' }}>
+        {/* File list */}
         <div style={{
           width: selected && !isMobile ? 340 : '100%',
           maxWidth: selected && !isMobile ? 340 : 'none',
           flexShrink: 0,
           background: 'var(--surface)',
-          borderRadius: 'var(--radius)',
+          border: '2px solid var(--border)',
           boxShadow: 'var(--shadow)',
           display: isMobile && selected ? 'none' : 'flex',
           flexDirection: 'column',
@@ -165,11 +177,11 @@ export default function App() {
               <div style={{
                 margin: 16,
                 padding: '12px 16px',
-                background: 'var(--danger)11',
-                border: '2px solid var(--danger)33',
-                borderRadius: 'var(--radius-sm)',
+                background: 'var(--surface2)',
+                border: '2px solid var(--danger)',
                 color: 'var(--danger)',
                 fontSize: 13,
+                fontWeight: 700,
               }}
               >
                 Could not load saves:
@@ -187,21 +199,21 @@ export default function App() {
             {files?.length === 0 && (
               <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 32 }}>
                 <div style={{ fontSize: 56, marginBottom: 12 }}>🎮</div>
-                <div style={{ color: 'var(--text)', fontWeight: 800, fontSize: 22 }}>No saves yet.</div>
-                <div style={{ color: 'var(--muted)', fontSize: 15, marginTop: 6 }}>
+                <div style={{ color: 'var(--text)', fontWeight: 800, fontSize: 20 }}>NO SAVES YET</div>
+                <div style={{ color: 'var(--muted)', fontSize: 14, marginTop: 6 }}>
                   Push a save from your Anbernic to get started.
                 </div>
               </div>
             )}
             {files && files.length > 0 && filtered.length === 0 && (
               <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 32 }}>
-                <div style={{ fontSize: 40, marginBottom: 10 }}>🔍</div>
-                <div style={{ color: 'var(--text)', fontWeight: 800, fontSize: 22 }}>
-                  No results for "
-                  {search}
+                <div style={{ fontSize: 40, marginBottom: 10 }}>—</div>
+                <div style={{ color: 'var(--text)', fontWeight: 800, fontSize: 20 }}>
+                  NO RESULTS FOR "
+                  {search.toUpperCase()}
                   "
                 </div>
-                <div style={{ color: 'var(--muted)', fontSize: 15, marginTop: 6 }}>
+                <div style={{ color: 'var(--muted)', fontSize: 14, marginTop: 6 }}>
                   Try a different search term.
                 </div>
               </div>
@@ -223,12 +235,12 @@ export default function App() {
           <div style={{
             flex: 1,
             background: 'var(--surface)',
-            borderRadius: 'var(--radius)',
+            border: '2px solid var(--border)',
             boxShadow: 'var(--shadow)',
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
-            animation: `${isMobile ? 'slideUp' : 'fadeSlideIn'} 0.22s ease`,
+            animation: `${isMobile ? 'slideUp' : 'fadeSlideIn'} 0.18s ease`,
           }}
           >
             <HistoryPanel

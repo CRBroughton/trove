@@ -10,6 +10,8 @@ interface CommitLineProps {
   onRestore: () => void
 }
 
+const stripe = 'repeating-linear-gradient(-45deg, #FFE03A 0, #FFE03A 5px, #0a0a0a 5px, #0a0a0a 7px)'
+
 export function CommitLine({ commit, path, isLatest, onRestore }: CommitLineProps) {
   const [restoring, setRestoring] = useState(false)
   const [done, setDone] = useState(false)
@@ -40,46 +42,50 @@ export function CommitLine({ commit, path, isLatest, onRestore }: CommitLineProp
       gap: 12,
       alignItems: 'flex-start',
       padding: '10px 14px',
-      borderRadius: 'var(--radius-sm)',
-      background: isLatest ? 'var(--accent)0d' : 'var(--surface2)',
-      border: `2px solid ${isLatest ? 'var(--accent)33' : 'var(--border)'}`,
+      background: isLatest ? 'var(--accent)' : 'var(--surface2)',
+      border: '2px solid var(--border)',
       marginBottom: 6,
     }}
     >
       <div style={{
-        marginTop: 4,
+        marginTop: 6,
         width: 10,
         height: 10,
-        borderRadius: '50%',
-        background: isLatest ? 'var(--accent2)' : 'var(--border)',
-        border: `2px solid ${isLatest ? 'var(--accent2)' : 'var(--muted)'}`,
         flexShrink: 0,
+        background: isLatest ? '#0a0a0a' : 'var(--surface)',
+        border: '2px solid var(--border)',
       }}
       />
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <code style={{ fontFamily: 'var(--mono)', color: 'var(--accent)', fontSize: 13, fontWeight: 500 }}>
+          <code style={{ fontFamily: 'var(--mono)', color: isLatest ? '#0a0a0a' : 'var(--text)', fontSize: 13, fontWeight: 700 }}>
             {shortHash(commit.hash)}
           </code>
           {isLatest && (
             <span style={{
-              background: 'var(--accent2)22',
-              color: 'var(--accent2)',
-              fontSize: 11,
-              fontWeight: 800,
-              padding: '1px 8px',
-              borderRadius: 'var(--radius-pill)',
+              background: stripe,
+              color: '#0a0a0a',
+              fontSize: 10,
+              fontWeight: 900,
+              padding: '2px 8px',
+              border: '1.5px solid #0a0a0a',
+              letterSpacing: 1.5,
+              textTransform: 'uppercase',
             }}
             >
-              latest
+              LATEST
             </span>
           )}
-          <span style={{ color: 'var(--muted)', fontSize: 13 }}>{fmtDate(commit.date)}</span>
+          <span style={{ color: isLatest ? '#0a0a0a' : 'var(--muted)', fontSize: 12, opacity: isLatest ? 0.7 : 1 }}>
+            {fmtDate(commit.date)}
+          </span>
         </div>
-        <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 2 }}>{commit.message}</div>
+        <div style={{ color: isLatest ? '#0a0a0a' : 'var(--muted)', fontSize: 13, marginTop: 2 }}>
+          {commit.message}
+        </div>
         {restoreError && (
-          <div style={{ color: 'var(--danger)', fontSize: 12, marginTop: 4 }}>{restoreError}</div>
+          <div style={{ color: 'var(--danger)', fontSize: 12, marginTop: 4, fontWeight: 700 }}>{restoreError}</div>
         )}
       </div>
 
@@ -89,31 +95,38 @@ export function CommitLine({ commit, path, isLatest, onRestore }: CommitLineProp
           disabled={restoring}
           style={{
             flexShrink: 0,
-            background: done ? 'var(--accent2)22' : 'var(--surface)',
-            border: `2px solid ${done ? 'var(--accent2)' : 'var(--border)'}`,
-            color: done ? 'var(--accent2)' : 'var(--muted)',
-            borderRadius: 'var(--radius-pill)',
+            background: done ? 'var(--accent)' : 'var(--surface)',
+            border: '2px solid var(--border)',
+            color: done ? '#0a0a0a' : 'var(--muted)',
             padding: '4px 14px',
-            fontSize: 13,
-            fontWeight: 700,
+            fontSize: 12,
+            fontWeight: 800,
+            letterSpacing: 0.5,
             cursor: restoring ? 'wait' : 'pointer',
-            transition: 'all 0.15s',
+            boxShadow: done ? 'none' : 'var(--shadow-sm)',
+            transform: done ? 'translate(2px, 2px)' : 'translate(0, 0)',
+            transition: 'transform var(--transition), box-shadow var(--transition), background var(--transition), color var(--transition)',
             whiteSpace: 'nowrap',
+            textTransform: 'uppercase',
           }}
           onMouseEnter={(e) => {
-            if (!done) {
-              e.currentTarget.style.borderColor = 'var(--danger)'
-              e.currentTarget.style.color = 'var(--danger)'
+            if (!done && !restoring) {
+              e.currentTarget.style.background = 'var(--accent)'
+              e.currentTarget.style.color = '#0a0a0a'
+              e.currentTarget.style.transform = 'translate(2px, 2px)'
+              e.currentTarget.style.boxShadow = '0px 0px 0 var(--border)'
             }
           }}
           onMouseLeave={(e) => {
-            if (!done) {
-              e.currentTarget.style.borderColor = 'var(--border)'
+            if (!done && !restoring) {
+              e.currentTarget.style.background = 'var(--surface)'
               e.currentTarget.style.color = 'var(--muted)'
+              e.currentTarget.style.transform = 'translate(0, 0)'
+              e.currentTarget.style.boxShadow = 'var(--shadow-sm)'
             }
           }}
         >
-          {done ? '✓ restored' : restoring ? 'restoring…' : 'restore'}
+          {done ? '✓ RESTORED' : restoring ? 'RESTORING…' : 'RESTORE'}
         </button>
       )}
     </div>

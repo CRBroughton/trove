@@ -11,7 +11,7 @@ ui-build:
 
 # Run the Go server (UI must be built first)
 dev:
-    go run ./cmd/trove
+    go run ./cmd/trove -repo /tmp/trove-dev-saves
 
 # Run the Vite dev server (proxies /api to :8080)
 ui-dev:

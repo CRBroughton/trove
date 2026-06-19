@@ -15,14 +15,14 @@ export function SystemGroup({ system, files, selected, onSelect }: SystemGroupPr
   const color = systemColor(system)
 
   return (
-    <div style={{ marginBottom: 10 }}>
+    <div style={{ marginBottom: 12 }}>
       <button
         onClick={() => setOpen(o => !o)}
         style={{
           width: '100%',
           background: 'none',
           border: 'none',
-          padding: '6px 16px',
+          padding: '4px 16px',
           textAlign: 'left',
           display: 'flex',
           justifyContent: 'space-between',
@@ -35,40 +35,43 @@ export function SystemGroup({ system, files, selected, onSelect }: SystemGroupPr
           alignItems: 'center',
           gap: 8,
           background: color,
-          color: '#3a3060',
+          color: '#0a0a0a',
           fontWeight: 800,
-          fontSize: 13,
-          letterSpacing: 1,
+          fontSize: 12,
+          letterSpacing: 1.5,
           padding: '4px 14px',
-          borderRadius: 'var(--radius-pill)',
+          border: '2px solid #0a0a0a',
+          textTransform: 'uppercase',
         }}
         >
           {system}
           <span style={{
-            fontSize: 11,
-            opacity: 0.7,
-            fontWeight: 600,
+            fontSize: 10,
+            fontWeight: 900,
+            display: 'inline-block',
+            transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
+            transition: 'transform var(--transition)',
+            lineHeight: 1,
           }}
           >
-            {open ? '▾' : '▸'}
+            ›
           </span>
         </span>
-        <span style={{ color: 'var(--muted)', fontSize: 13 }}>
+        <span style={{ color: 'var(--muted)', fontSize: 12, fontWeight: 700, letterSpacing: 0.5 }}>
           {files.length}
           {' '}
-          save
-          {files.length !== 1 ? 's' : ''}
+          {files.length !== 1 ? 'SAVES' : 'SAVE'}
         </span>
       </button>
 
       <div style={{
         display: 'grid',
         gridTemplateRows: open ? '1fr' : '0fr',
-        transition: 'grid-template-rows 0.25s ease',
+        transition: 'grid-template-rows 0.2s ease',
       }}
       >
         <div style={{ overflow: 'hidden' }}>
-          <div style={{ padding: '4px 8px 8px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ padding: '6px 10px 8px', display: 'flex', flexDirection: 'column', gap: 6 }}>
             {files.map(f => (
               <SaveRow
                 key={f.path}
