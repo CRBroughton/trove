@@ -1,3 +1,5 @@
+![trove screenshot](screenshot.png)
+
 Self-hosted save-file sync for Anbernic and TrimUI handhelds. Runs on NixOS,
 stores saves in a git working tree, and serves a web UI for browsing and
 restoring history. Devices talk to it over your local network.
