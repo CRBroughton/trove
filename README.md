@@ -2,7 +2,8 @@
 
 Self-hosted save-file sync for Anbernic and TrimUI handhelds. Runs on NixOS,
 stores saves in a git working tree, and serves a web UI for browsing and
-restoring history. Devices talk to it over your local network.
+restoring history. Devices talk to it over your local network. There is no
+authentication - this is intended for personal use on a trusted LAN.
 
 > **trove v0.2.0** — early development; APIs may change.
 
