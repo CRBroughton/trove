@@ -1,0 +1,81 @@
+# GET  /api/history — commit log for a file
+# POST /api/restore — restore to a previous commit
+
+### push v1 so history is non-empty
+POST {{baseUrl}}/api/push/e2e/history-test.srm?device=e2e-runner
+Content-Type: application/octet-stream
+
+SAVE_V1
+
+{%
+  test('status 200', () => {
+    expect(response.status).toBe(200);
+  });
+%}
+
+### push v2
+POST {{baseUrl}}/api/push/e2e/history-test.srm?device=e2e-runner
+Content-Type: application/octet-stream
+
+SAVE_V2
+
+{%
+  test('status 200', () => {
+    expect(response.status).toBe(200);
+  });
+%}
+
+### fetch history — should have at least 2 commits
+GET {{baseUrl}}/api/history/e2e/history-test.srm
+Accept: application/json
+
+{{
+  // {{ }} block: sets variables in httpyac global scope for subsequent requests
+  const commits = response.parsedBody;
+  oldHash = commits[commits.length - 1].hash;
+}}
+
+{%
+  test('status 200', () => {
+    expect(response.status).toBe(200);
+  });
+  test('at least 2 commits', () => {
+    expect(response.parsedBody.length).toBeGreaterThanOrEqual(2);
+  });
+  test('commits have hash field', () => {
+    expect(response.parsedBody[0].hash).toBeDefined();
+  });
+%}
+
+### restore to the oldest commit
+POST {{baseUrl}}/api/restore/e2e/history-test.srm?hash={{oldHash}}
+
+{%
+  test('status 200', () => {
+    expect(response.status).toBe(200);
+  });
+  test('body status restored', () => {
+    expect(response.parsedBody.status).toBe('restored');
+  });
+  test('body echoes hash', () => {
+    expect(response.parsedBody.hash).toBeDefined();
+  });
+%}
+
+### history missing path returns 400
+GET {{baseUrl}}/api/history/
+
+{%
+  test('status 400', () => {
+    expect(response.status).toBe(400);
+  });
+%}
+
+### restore missing hash returns 400
+POST {{baseUrl}}/api/restore/e2e/history-test.srm
+
+{%
+  test('status 400', () => {
+    expect(response.status).toBe(400);
+  });
+%}

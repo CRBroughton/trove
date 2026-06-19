@@ -1,0 +1,65 @@
+# POST /api/push — write a save file
+# GET  /api/pull — read it back
+
+### push a save file
+# @name push
+POST {{baseUrl}}/api/push/e2e/trove-test.srm?device=e2e-runner
+Content-Type: application/octet-stream
+
+TROVE_E2E_TEST_SAVE_DATA
+
+{%
+  test('status 200', () => {
+    expect(response.status).toBe(200);
+  });
+  test('body status ok', () => {
+    expect(response.parsedBody.status).toBe('ok');
+  });
+  test('body path matches', () => {
+    expect(response.parsedBody.path).toBe('e2e/trove-test.srm');
+  });
+
+  exports.savedPath = response.parsedBody.path;
+%}
+
+### pull the save back
+GET {{baseUrl}}/api/pull/e2e/trove-test.srm
+
+{%
+  test('status 200', () => {
+    expect(response.status).toBe(200);
+  });
+  test('content-type octet-stream', () => {
+    expect(response.headers['content-type']).toBe('application/octet-stream');
+  });
+  test('content-disposition set', () => {
+    expect(response.headers['content-disposition']).toContain('trove-test.srm');
+  });
+%}
+
+### push without path returns 400
+POST {{baseUrl}}/api/push/
+
+{%
+  test('status 400', () => {
+    expect(response.status).toBe(400);
+  });
+%}
+
+### pull non-existent file returns 404
+GET {{baseUrl}}/api/pull/e2e/does-not-exist.srm
+
+{%
+  test('status 404', () => {
+    expect(response.status).toBe(404);
+  });
+%}
+
+### GET on /api/push is rejected
+GET {{baseUrl}}/api/push/e2e/trove-test.srm
+
+{%
+  test('status 405', () => {
+    expect(response.status).toBe(405);
+  });
+%}
