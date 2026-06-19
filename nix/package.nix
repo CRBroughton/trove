@@ -53,6 +53,6 @@ pkgs.buildGoModule {
   meta = {
     description = "Self-hosted save-file sync server for Anbernic handhelds";
     mainProgram = "trove";
-    license = lib.licenses.mit;
+    license = lib.licenses.elastic20;
   };
 }
