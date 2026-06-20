@@ -1,4 +1,4 @@
-import type { Commit, FileEntry } from '../types'
+import type { Commit, FileEntry, Transfer, TradeDevice } from '../types'
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const r = await fetch(url, init)
@@ -24,5 +24,23 @@ export const api = {
 
   pullUrl(path: string): string {
     return `/api/pull/${path}`
+  },
+
+  trade: {
+    devices(): Promise<TradeDevice[]> {
+      return request<TradeDevice[]>('/api/trade/devices')
+    },
+
+    transfers(): Promise<Transfer[]> {
+      return request<Transfer[]>('/api/trade/transfers')
+    },
+
+    transfer(fromDevice: string, toDevice: string, romPath: string): Promise<Transfer> {
+      return request<Transfer>('/api/trade/transfer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from_device: fromDevice, to_device: toDevice, rom_path: romPath }),
+      })
+    },
   },
 }

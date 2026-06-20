@@ -4,7 +4,10 @@ import { api } from './api/client'
 import { HistoryPanel } from './components/HistoryPanel'
 import { SkeletonGroup } from './components/Skeleton'
 import { SystemGroup } from './components/SystemGroup'
+import { TradingPanel } from './components/TradingPanel'
 import { groupBySystem } from './utils/format'
+
+type Tab = 'saves' | 'trade'
 
 const btnBase: React.CSSProperties = {
   background: 'var(--surface)',
@@ -30,6 +33,7 @@ function pressBtnOut(e: React.MouseEvent<HTMLElement>) {
 }
 
 export default function App() {
+  const [tab, setTab] = useState<Tab>('saves')
   const [files, setFiles] = useState<FileEntry[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [selected, setSelected] = useState<FileEntry | null>(null)
@@ -58,7 +62,9 @@ export default function App() {
     }
   }, [])
 
-  useEffect(() => { void load() }, [load])
+  useEffect(() => {
+    void load()
+  }, [load])
 
   const filtered = files?.filter(f =>
     f.path.toLowerCase().includes(search.toLowerCase()),
@@ -96,27 +102,48 @@ export default function App() {
             TROVE
           </div>
 
-          {!isMobile && (
-            <span style={{ color: 'var(--muted)', fontSize: 13, fontWeight: 600 }}>
-              {files ? `${files.length} saves` : '…'}
-            </span>
-          )}
+          {/* Tab switcher */}
+          <div style={{ display: 'flex', gap: 0 }}>
+            {(['saves', 'trade'] as Tab[]).map(t => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                style={{
+                  ...btnBase,
+                  padding: '5px 14px',
+                  fontSize: 12,
+                  letterSpacing: 1,
+                  background: tab === t ? 'var(--accent)' : 'var(--surface)',
+                  color: tab === t ? '#0a0a0a' : 'var(--text)',
+                  boxShadow: tab === t ? 'var(--shadow-sm)' : 'none',
+                  border: '2px solid var(--border)',
+                  marginLeft: t === 'trade' ? -2 : 0,
+                }}
+                onMouseEnter={tab !== t ? pressBtnIn : undefined}
+                onMouseLeave={tab !== t ? pressBtnOut : undefined}
+              >
+                {t === 'saves' ? 'SAVES' : '⇌ TRADE'}
+              </button>
+            ))}
+          </div>
 
           <div style={{ flex: 1 }} />
 
-          <button
-            onClick={() => { void load() }}
-            style={{
-              ...btnBase,
-              padding: isMobile ? '6px 12px' : '6px 16px',
-              fontSize: isMobile ? 16 : 13,
-            }}
-            title="Refresh"
-            onMouseEnter={pressBtnIn}
-            onMouseLeave={pressBtnOut}
-          >
-            {isMobile ? '↻' : '↻ REFRESH'}
-          </button>
+          {tab === 'saves' && (
+            <button
+              onClick={() => { void load() }}
+              style={{
+                ...btnBase,
+                padding: isMobile ? '6px 12px' : '6px 16px',
+                fontSize: isMobile ? 16 : 13,
+              }}
+              title="Refresh"
+              onMouseEnter={pressBtnIn}
+              onMouseLeave={pressBtnOut}
+            >
+              {isMobile ? '↻' : '↻ REFRESH'}
+            </button>
+          )}
 
           <button
             onClick={() => setDark(d => !d)}
@@ -129,127 +156,144 @@ export default function App() {
           </button>
         </div>
 
-        <input
-          type="text"
-          placeholder="Filter saves…"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          onFocus={e => {
-            e.currentTarget.style.boxShadow = '4px 4px 0 var(--accent)'
-          }}
-          onBlur={e => {
-            e.currentTarget.style.boxShadow = 'var(--shadow-sm)'
-          }}
-          style={{
-            width: '100%',
-            background: 'var(--surface)',
-            border: '2px solid var(--border)',
-            padding: '10px 18px',
-            color: 'var(--text)',
-            fontFamily: 'var(--sans)',
-            fontSize: 14,
-            fontWeight: 600,
-            outline: 'none',
-            boxShadow: 'var(--shadow-sm)',
-            transition: 'box-shadow var(--transition)',
-          }}
-        />
+        {tab === 'saves' && (
+          <input
+            type="text"
+            placeholder="Filter saves…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            onFocus={(e) => {
+              e.currentTarget.style.boxShadow = '4px 4px 0 var(--accent)'
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.boxShadow = 'var(--shadow-sm)'
+            }}
+            style={{
+              width: '100%',
+              background: 'var(--surface)',
+              border: '2px solid var(--border)',
+              padding: '10px 18px',
+              color: 'var(--text)',
+              fontFamily: 'var(--sans)',
+              fontSize: 14,
+              fontWeight: 600,
+              outline: 'none',
+              boxShadow: 'var(--shadow-sm)',
+              transition: 'box-shadow var(--transition)',
+            }}
+          />
+        )}
       </header>
 
       {/* Main */}
-      <div style={{ display: 'flex', flex: 1, gap: 16, overflow: 'hidden' }}>
-        {/* File list */}
-        <div style={{
-          width: selected && !isMobile ? 340 : '100%',
-          maxWidth: selected && !isMobile ? 340 : 'none',
-          flexShrink: 0,
-          background: 'var(--surface)',
-          border: '2px solid var(--border)',
-          boxShadow: 'var(--shadow)',
-          display: isMobile && selected ? 'none' : 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          transition: 'width 0.2s',
-        }}
-        >
-          <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
-            {error && (
-              <div style={{
-                margin: 16,
-                padding: '12px 16px',
-                background: 'var(--surface2)',
-                border: '2px solid var(--danger)',
-                color: 'var(--danger)',
-                fontSize: 13,
-                fontWeight: 700,
-              }}
-              >
-                Could not load saves:
-                {' '}
-                {error}
-              </div>
-            )}
-            {!files && !error && (
-              <div style={{ padding: '8px 0', animation: 'fadeIn 0.2s ease' }}>
-                <SkeletonGroup rows={3} />
-                <SkeletonGroup rows={2} />
-                <SkeletonGroup rows={4} />
-              </div>
-            )}
-            {files?.length === 0 && (
-              <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 32 }}>
-                <div style={{ fontSize: 56, marginBottom: 12 }}>🎮</div>
-                <div style={{ color: 'var(--text)', fontWeight: 800, fontSize: 20 }}>NO SAVES YET</div>
-                <div style={{ color: 'var(--muted)', fontSize: 14, marginTop: 6 }}>
-                  Push a save from your Anbernic to get started.
+      <div style={{
+        display: 'flex',
+        flex: 1,
+        gap: 16,
+        overflow: 'hidden',
+        background: tab === 'trade' ? 'var(--surface)' : undefined,
+        border: tab === 'trade' ? '2px solid var(--border)' : undefined,
+        boxShadow: tab === 'trade' ? 'var(--shadow)' : undefined,
+      }}
+      >
+        {tab === 'trade'
+          ? <TradingPanel />
+          : (
+              <>
+                {/* File list */}
+                <div style={{
+                  width: selected && !isMobile ? 340 : '100%',
+                  maxWidth: selected && !isMobile ? 340 : 'none',
+                  flexShrink: 0,
+                  background: 'var(--surface)',
+                  border: '2px solid var(--border)',
+                  boxShadow: 'var(--shadow)',
+                  display: isMobile && selected ? 'none' : 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                  transition: 'width 0.2s',
+                }}
+                >
+                  <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
+                    {error && (
+                      <div style={{
+                        margin: 16,
+                        padding: '12px 16px',
+                        background: 'var(--surface2)',
+                        border: '2px solid var(--danger)',
+                        color: 'var(--danger)',
+                        fontSize: 13,
+                        fontWeight: 700,
+                      }}
+                      >
+                        Could not load saves:
+                        {' '}
+                        {error}
+                      </div>
+                    )}
+                    {!files && !error && (
+                      <div style={{ padding: '8px 0', animation: 'fadeIn 0.2s ease' }}>
+                        <SkeletonGroup rows={3} />
+                        <SkeletonGroup rows={2} />
+                        <SkeletonGroup rows={4} />
+                      </div>
+                    )}
+                    {files?.length === 0 && (
+                      <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 32 }}>
+                        <div style={{ fontSize: 56, marginBottom: 12 }}>🎮</div>
+                        <div style={{ color: 'var(--text)', fontWeight: 800, fontSize: 20 }}>NO SAVES YET</div>
+                        <div style={{ color: 'var(--muted)', fontSize: 14, marginTop: 6 }}>
+                          Push a save from your Anbernic to get started.
+                        </div>
+                      </div>
+                    )}
+                    {files && files.length > 0 && filtered.length === 0 && (
+                      <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 32 }}>
+                        <div style={{ fontSize: 40, marginBottom: 10 }}>—</div>
+                        <div style={{ color: 'var(--text)', fontWeight: 800, fontSize: 20 }}>
+                          NO RESULTS FOR "
+                          {search.toUpperCase()}
+                          "
+                        </div>
+                        <div style={{ color: 'var(--muted)', fontSize: 14, marginTop: 6 }}>
+                          Try a different search term.
+                        </div>
+                      </div>
+                    )}
+                    {Object.entries(grouped).map(([sys, sysFiles]) => (
+                      <SystemGroup
+                        key={sys}
+                        system={sys}
+                        files={sysFiles}
+                        selected={selected}
+                        onSelect={f => setSelected(prev => prev?.path === f.path ? null : f)}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-            {files && files.length > 0 && filtered.length === 0 && (
-              <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 32 }}>
-                <div style={{ fontSize: 40, marginBottom: 10 }}>—</div>
-                <div style={{ color: 'var(--text)', fontWeight: 800, fontSize: 20 }}>
-                  NO RESULTS FOR "
-                  {search.toUpperCase()}
-                  "
-                </div>
-                <div style={{ color: 'var(--muted)', fontSize: 14, marginTop: 6 }}>
-                  Try a different search term.
-                </div>
-              </div>
-            )}
-            {Object.entries(grouped).map(([sys, sysFiles]) => (
-              <SystemGroup
-                key={sys}
-                system={sys}
-                files={sysFiles}
-                selected={selected}
-                onSelect={f => setSelected(prev => prev?.path === f.path ? null : f)}
-              />
-            ))}
-          </div>
-        </div>
 
-        {/* History panel */}
-        {selected && (
-          <div style={{
-            flex: 1,
-            background: 'var(--surface)',
-            border: '2px solid var(--border)',
-            boxShadow: 'var(--shadow)',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            animation: `${isMobile ? 'slideUp' : 'fadeSlideIn'} 0.18s ease`,
-          }}
-          >
-            <HistoryPanel
-              file={selected}
-              isMobile={isMobile}
-              onClose={() => setSelected(null)}
-            />
-          </div>
-        )}
+                {/* History panel */}
+                {selected && (
+                  <div style={{
+                    flex: 1,
+                    background: 'var(--surface)',
+                    border: '2px solid var(--border)',
+                    boxShadow: 'var(--shadow)',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    animation: `${isMobile ? 'slideUp' : 'fadeSlideIn'} 0.18s ease`,
+                  }}
+                  >
+                    <HistoryPanel
+                      file={selected}
+                      isMobile={isMobile}
+                      onClose={() => setSelected(null)}
+                    />
+                  </div>
+                )}
+              </>
+            )}
       </div>
     </div>
   )
