@@ -207,9 +207,6 @@ elif [ "$DIRECTION" = "push" ]; then
   log "push done"
 
 elif [ "$DIRECTION" = "pull" ]; then
-  # Announce ROM list to enable trading
-  trade_announce
-
   # If there are unpushed local changes, push them first before pulling
   if [ -f "$DIRTY" ]; then
     log "unpushed changes detected — pushing before pull…"
