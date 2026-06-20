@@ -1,8 +1,8 @@
 ![trove screenshot](screenshot.png)
 
-Self-hosted save-file sync for Anbernic and TrimUI handhelds. Runs on NixOS,
-stores saves in a git working tree, and serves a web UI for browsing and
-restoring history. Devices talk to it over your local network. There is no
+Self-hosted save-file sync and ROM trading for Anbernic and TrimUI handhelds. Runs on NixOS,
+stores saves in a git working tree, and serves a web UI for browsing, restoring history, and
+copying ROMs between devices on the network. Devices talk to it over your local network. There is no
 authentication - this is intended for personal use on a trusted LAN.
 
 > **trove v0.4.0** — early development; unstable, APIs may change. Use at your own risk.
@@ -56,6 +56,7 @@ ssh root@DEVICE_IP "chmod +x /storage/.config/trove/sync.sh"
 ```sh
 SERVER="http://192.168.x.x:8080"   # LAN IP of your trove server
 DEVICE_NAME="anbernic"              # unique name for this device
+ROMS_DIR="/storage/roms"            # ROM root for trading (set to "" to disable)
 ```
 
 ### 3. Create the event hooks
@@ -110,6 +111,7 @@ ssh root@DEVICE_IP "chmod +x /userdata/system/scripts/trove/sync.sh"
 ```sh
 SERVER="http://192.168.x.x:8080"   # LAN IP of your trove server
 DEVICE_NAME="trimui"                # unique name for this device
+ROMS_DIR="/userdata/roms"           # ROM root for trading (set to "" to disable)
 ```
 
 ### 3. Create the event dispatcher
@@ -141,7 +143,23 @@ these to push and pull on `sync.sh`.
 
 ---
 
+## ROM Trading
+
+The ⇌ TRADE tab in the web UI shows all devices that have announced themselves on the network. Select a ROM from one device and hit SEND to copy it to another. The server brokers the transfer — ROMs are held in a temp file only while in-flight and deleted after delivery.
+
+On each device, add a **Trove Trade** entry to EmulationStation (Tools on AmberELEC, Ports on Batocera). Launching it announces the device's ROM library and processes any pending transfers.
+
+```sh
+# manually announce and check for pending transfers
+/storage/.config/trove/sync.sh trade-announce
+/storage/.config/trove/sync.sh trade-check
+```
+
+---
+
 ## API
+
+### Saves
 
 | Method | Path | Description |
 |--------|------|-------------|
@@ -157,6 +175,18 @@ curl -X POST --data-binary @pokemon.srm \
 
 curl http://192.168.x.x:8080/api/pull/gba/pokemon.srm -o pokemon.srm
 ```
+
+### Trading
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/trade/announce` | Register device with ROM list |
+| GET | `/api/trade/devices` | List online devices and their ROMs |
+| POST | `/api/trade/transfer` | Queue a ROM transfer between two devices |
+| GET | `/api/trade/pending?device=<name>` | Check pending uploads/downloads for a device |
+| POST | `/api/trade/upload/<path>?transfer=<id>` | Source device uploads ROM to server |
+| GET | `/api/trade/fetch/<path>?transfer=<id>&device=<name>` | Target device downloads ROM from server |
+| GET | `/api/trade/events` | SSE stream for live UI updates |
 
 ---
 
