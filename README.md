@@ -147,12 +147,37 @@ these to push and pull on `sync.sh`.
 
 The ⇌ TRADE tab in the web UI shows all devices that have announced themselves on your local network. Select a ROM from one device and hit SEND to copy it to another. Trove facilitates ROM transfers between devices on your local network and does not host ROMs. ROMs are held in a temp file only while in-flight and deleted after delivery.
 
-On each device, add a **Trove Trade** entry to EmulationStation (Tools on AmberELEC, Ports on Batocera). Launching it announces the device's ROM library and processes any pending transfers.
+Run `sync.sh trade` to announce your ROM library and process any pending transfers in one step. Wire this up as a launchable entry in EmulationStation so you can trigger it from the device menu.
+
+### Anbernic (AmberELEC)
 
 ```sh
-# manually announce and check for pending transfers
-/storage/.config/trove/sync.sh trade-announce
-/storage/.config/trove/sync.sh trade-check
+cat > /storage/.config/distribution/modules/Trove\ Trade.sh << 'EOF'
+#!/bin/bash
+/storage/.config/trove/sync.sh trade
+EOF
+chmod +x "/storage/.config/distribution/modules/Trove Trade.sh"
+```
+
+Appears under Tools in EmulationStation.
+
+### TrimUI Brick (Batocera / Knulli)
+
+```sh
+mkdir -p /userdata/roms/ports
+cat > /userdata/roms/ports/Trove\ Trade.sh << 'EOF'
+#!/bin/bash
+/userdata/system/scripts/trove/sync.sh trade
+EOF
+chmod +x "/userdata/roms/ports/Trove Trade.sh"
+```
+
+Appears under Ports in EmulationStation.
+
+```sh
+# or run directly
+/storage/.config/trove/sync.sh trade        # Anbernic
+/userdata/system/scripts/trove/sync.sh trade  # Brick
 ```
 
 ---

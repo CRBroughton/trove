@@ -161,7 +161,7 @@ trade_check() {
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 
-DIRECTION=${1:-push}   # "push", "pull", "trade-announce", or "trade-check"
+DIRECTION=${1:-push}   # "push", "pull", "trade", "trade-announce", or "trade-check"
 
 if ! check_server; then
   log "server unreachable at $SERVER — skipping sync"
@@ -181,15 +181,16 @@ push_changed_files() {
   $PUSH_OK
 }
 
-if [ "$DIRECTION" = "trade-announce" ]; then
+if [ "$DIRECTION" = "trade" ]; then
+  trade_announce
+  trade_check
+  exit 0
+
+elif [ "$DIRECTION" = "trade-announce" ]; then
   trade_announce
   exit 0
 
 elif [ "$DIRECTION" = "trade-check" ]; then
-  if ! check_server; then
-    log "server unreachable — skipping trade check"
-    exit 0
-  fi
   trade_check
   exit 0
 
