@@ -6,12 +6,14 @@ import (
 	"net/http"
 
 	"github.com/crbroughton/trove/internal/git"
+	"github.com/crbroughton/trove/internal/trade"
 )
 
 // NewMux wires all HTTP routes and returns the root handler.
 // ui is served for any path not matched by the API routes.
-func NewMux(repo git.Repository, ui http.Handler) http.Handler {
+func NewMux(repo git.Repository, tradeStore *trade.Store, ui http.Handler) http.Handler {
 	h := &handler{repo: repo}
+	th := &tradeHandler{store: tradeStore}
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/api/files", h.listFiles)
@@ -19,6 +21,16 @@ func NewMux(repo git.Repository, ui http.Handler) http.Handler {
 	mux.HandleFunc("/api/pull/", h.pullSave)
 	mux.HandleFunc("/api/history/", h.history)
 	mux.HandleFunc("/api/restore/", h.restore)
+
+	mux.HandleFunc("/api/trade/events", th.events)
+	mux.HandleFunc("/api/trade/announce", th.announce)
+	mux.HandleFunc("/api/trade/devices", th.devices)
+	mux.HandleFunc("/api/trade/transfers", th.listTransfers)
+	mux.HandleFunc("/api/trade/transfer", th.queueTransfer)
+	mux.HandleFunc("/api/trade/pending", th.pending)
+	mux.HandleFunc("/api/trade/upload/", th.upload)
+	mux.HandleFunc("/api/trade/fetch/", th.fetch)
+
 	mux.Handle("/", ui)
 
 	return withLogging(mux)

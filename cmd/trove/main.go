@@ -8,6 +8,7 @@ import (
 	"github.com/crbroughton/trove/internal/api"
 	"github.com/crbroughton/trove/internal/embed"
 	"github.com/crbroughton/trove/internal/git"
+	"github.com/crbroughton/trove/internal/trade"
 )
 
 func main() {
@@ -20,7 +21,12 @@ func main() {
 		log.Fatalf("failed to open/init repo: %v", err)
 	}
 
-	mux := api.NewMux(repo, embed.Handler())
+	tradeStore, err := trade.NewStore()
+	if err != nil {
+		log.Fatalf("failed to init trade store: %v", err)
+	}
+
+	mux := api.NewMux(repo, tradeStore, embed.Handler())
 
 	log.Printf("trove listening on %s", *addr)
 	if err := http.ListenAndServe(*addr, mux); err != nil {
