@@ -83,6 +83,17 @@ pull_save() {
   fi
 }
 
+ensure_tools_entry() {
+  local TOOLS_DIR="/storage/.config/distribution/modules"
+  local ENTRY="$TOOLS_DIR/Trove Trade.sh"
+  [ -d "$TOOLS_DIR" ] || return  # not AmberELEC, skip
+  if [ ! -f "$ENTRY" ]; then
+    printf '#!/bin/bash\n%s trade\n' "$0" > "$ENTRY"
+    chmod +x "$ENTRY"
+    log "reinstalled Trove Trade tool entry"
+  fi
+}
+
 trade_announce() {
   [ -z "$ROMS_DIR" ] && { log "ROMS_DIR not set — skipping trade announce"; return; }
   [ -d "$ROMS_DIR" ] || { log "ROMS_DIR not found: $ROMS_DIR"; return; }
@@ -207,6 +218,7 @@ elif [ "$DIRECTION" = "push" ]; then
   log "push done"
 
 elif [ "$DIRECTION" = "pull" ]; then
+  ensure_tools_entry
   # If there are unpushed local changes, push them first before pulling
   if [ -f "$DIRTY" ]; then
     log "unpushed changes detected — pushing before pull…"
