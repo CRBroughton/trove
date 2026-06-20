@@ -139,7 +139,9 @@ elif [ "$DIRECTION" = "pull" ]; then
   while IFS= read -r entry; do
     REL=$(echo "$entry" | grep -o '"path":"[^"]*"' | cut -d'"' -f4)
     MOD=$(echo "$entry" | grep -o '"mod_time":"[^"]*"' | cut -d'"' -f4)
-    SERVER_MTIME=$(date -d "$MOD" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%S" "${MOD%%.*}" +%s 2>/dev/null)
+    SERVER_MTIME=$(date -D "%Y-%m-%dT%H:%M:%S" -d "${MOD%%.*}" +%s 2>/dev/null \
+      || date -d "$MOD" +%s 2>/dev/null \
+      || date -j -f "%Y-%m-%dT%H:%M:%S" "${MOD%%.*}" +%s 2>/dev/null)
     [ -n "$REL" ] && pull_save "$REL" "$SERVER_MTIME"
   done
 
