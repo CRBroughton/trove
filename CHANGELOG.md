@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.2] - 2026-06-20
+
+### Added
+
+- `sync.sh trade` direction: announces device and processes pending transfers in one step
+
+### Fixed
+
+- Trove Trade setup steps documented for both Anbernic and Brick in README
+- `trade-announce` removed from game-start pull hook — announcing only makes sense when the user explicitly wants to trade
+- Trade panel empty state now says "Launch Trove Trade" instead of showing a shell command
+
 ## [0.4.1] - 2026-06-20
 
 ### Fixed
