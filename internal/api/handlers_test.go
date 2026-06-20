@@ -11,6 +11,7 @@ import (
 
 	"github.com/crbroughton/trove/internal/api"
 	"github.com/crbroughton/trove/internal/git"
+	"github.com/crbroughton/trove/internal/trade"
 )
 
 // mockRepo implements git.Repository without touching the filesystem.
@@ -73,7 +74,11 @@ func (m *mockRepo) RestoreFile(_, _ string) error {
 
 func newServer(t *testing.T, repo git.Repository) *httptest.Server {
 	t.Helper()
-	return httptest.NewServer(api.NewMux(repo, http.NotFoundHandler()))
+	ts, err := trade.NewStore()
+	if err != nil {
+		t.Fatalf("trade.NewStore: %v", err)
+	}
+	return httptest.NewServer(api.NewMux(repo, ts, http.NotFoundHandler()))
 }
 
 // ── /api/files ───────────────────────────────────────────────────────────────
