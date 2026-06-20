@@ -85,12 +85,23 @@ chmod +x /storage/.config/emulationstation/scripts/game-start/trove.sh \
 
 ### 4. Add Trove Trade to Tools
 
+AmberELEC resets `/storage/.config/distribution/modules/` on every boot. Copy the install script and wire it into `custom_start.sh` so the entry is recreated automatically:
+
 ```sh
-cat > "/storage/.config/distribution/modules/Trove Trade.sh" << 'EOF'
-#!/bin/bash
-/storage/.config/trove/sync.sh trade
-EOF
-chmod +x "/storage/.config/distribution/modules/Trove Trade.sh"
+scp nix/amberelec-install-tool.sh root@DEVICE_IP:/storage/.config/trove/install-tool.sh
+ssh root@DEVICE_IP "chmod +x /storage/.config/trove/install-tool.sh"
+```
+
+Add to the `"before"` case in `/storage/.config/custom_start.sh`:
+
+```sh
+/storage/.config/trove/install-tool.sh
+```
+
+Run it once now to create the entry immediately:
+
+```sh
+/storage/.config/trove/install-tool.sh
 ```
 
 Appears under Tools in EmulationStation. Launch it when you want to trade ROMs.

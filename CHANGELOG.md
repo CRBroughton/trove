@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.4] - 2026-06-20
+
+### Fixed
+
+- AmberELEC Trove Trade tool entry now survives reboots via `custom_start.sh` hook
+- `amberelec-install-tool.sh` recreates the Tools entry and gamelist.xml registration on each boot, since AmberELEC rsync-wipes the modules directory at startup
+
 ## [0.4.3] - 2026-06-20
 
 ### Fixed
