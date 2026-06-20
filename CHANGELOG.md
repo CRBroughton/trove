@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-06-20
+
+### Fixed
+
+- Sync client no longer overwrites newer local saves with older server versions
+- Persistent dirty flag (survives reboot) tracks unsynced saves across power cycles
+- Pull is aborted entirely if push fails, protecting local saves
+- Fixed subshell bug where push failures were silently ignored
+- First-run push now sends all saves instead of only files from last 5 minutes
+
 ## [0.2.0] - 2026-06-19
 
 ### Changed
