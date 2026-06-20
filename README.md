@@ -5,7 +5,7 @@ stores saves in a git working tree, and serves a web UI for browsing, restoring 
 copying ROMs between devices on your local network. There is no authentication - this is intended
 for personal use on a trusted LAN.
 
-> **trove v0.4.0** - early development; unstable, APIs may change. Use at your own risk. The server does not store or host ROMs permanently.
+> **trove v0.4.0** - early development; unstable, APIs may change. Use at your own risk. This tool does not host ROMs.
 
 ---
 
@@ -145,7 +145,7 @@ these to push and pull on `sync.sh`.
 
 ## ROM Trading
 
-The ⇌ TRADE tab in the web UI shows all devices that have announced themselves on your local network. Select a ROM from one device and hit SEND to copy it to another. The server brokers the transfer; ROMs are held in a temp file only while in-flight and deleted after delivery. No ROMs are stored permanently on the server.
+The ⇌ TRADE tab in the web UI shows all devices that have announced themselves on your local network. Select a ROM from one device and hit SEND to copy it to another. The server brokers the transfer; ROMs are held in a temp file only while in-flight and deleted after delivery. This tool does not host ROMs.
 
 On each device, add a **Trove Trade** entry to EmulationStation (Tools on AmberELEC, Ports on Batocera). Launching it announces the device's ROM library and processes any pending transfers.
 
