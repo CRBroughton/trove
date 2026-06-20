@@ -86,11 +86,18 @@ pull_save() {
 ensure_tools_entry() {
   local TOOLS_DIR="/storage/.config/distribution/modules"
   local ENTRY="$TOOLS_DIR/Trove Trade.sh"
+  local GAMELIST="$TOOLS_DIR/gamelist.xml"
   [ -d "$TOOLS_DIR" ] || return  # not AmberELEC, skip
+
   if [ ! -f "$ENTRY" ]; then
     printf '#!/bin/bash\n%s trade\n' "$0" > "$ENTRY"
     chmod +x "$ENTRY"
     log "reinstalled Trove Trade tool entry"
+  fi
+
+  if [ -f "$GAMELIST" ] && ! grep -q "Trove Trade" "$GAMELIST"; then
+    sed -i "s|</gameList>|\t<game>\n\t\t<path>./Trove Trade.sh</path>\n\t\t<name>Trove Trade</name>\n\t\t<desc>Announce ROM library and process pending trades.</desc>\n\t\t<developer>trove</developer>\n\t\t<publisher>trove</publisher>\n\t\t<rating>1.0</rating>\n\t\t<releasedate>2026</releasedate>\n\t\t<genre>Script</genre>\n\t</game>\n</gameList>|" "$GAMELIST"
+    log "reinstalled Trove Trade gamelist entry"
   fi
 }
 
