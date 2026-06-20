@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.1] - 2026-06-20
+
+### Fixed
+
+- `Pending()` now returns empty arrays instead of null so JSON response is always `[]`
+
+### Added
+
+- Go unit tests for trade store: announce/TTL eviction, transfer state machine, SaveROM/FetchROM, wrong-device/wrong-state errors, SSE subscriber notifications
+- React component tests for Modal: render, confirm, cancel, overlay dismiss
+- httpyac e2e tests for full trade flow: announce, list devices, queue transfer, upload, fetch, error cases
+
 ## [0.4.0] - 2026-06-20
 
 ### Added
