@@ -162,7 +162,10 @@ func (s *Store) ListTransfers() []Transfer {
 func (s *Store) Pending(device string) PendingWork {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	var w PendingWork
+	w := PendingWork{
+		Uploads:   []TransferRef{},
+		Downloads: []TransferRef{},
+	}
 	for _, t := range s.transfers {
 		switch {
 		case t.FromDevice == device && t.State == StatePendingUpload:

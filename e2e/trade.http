@@ -1,0 +1,264 @@
+# POST /api/trade/announce  — register a device
+# GET  /api/trade/devices   — list online devices
+# POST /api/trade/transfer  — queue a ROM transfer
+# GET  /api/trade/pending   — check what a device needs to do
+# POST /api/trade/upload    — source device uploads ROM
+# GET  /api/trade/fetch     — target device downloads ROM
+
+### announce source device with one ROM
+POST {{baseUrl}}/api/trade/announce
+Content-Type: application/json
+
+{
+  "device": "e2e-source",
+  "roms": [
+    { "name": "pokemon.gba", "path": "gba/pokemon.gba", "size": 1024 }
+  ]
+}
+
+{%
+  test('status 200', () => {
+    expect(response.status).toBe(200);
+  });
+  test('body status ok', () => {
+    expect(response.parsedBody.status).toBe('ok');
+  });
+%}
+
+### announce target device
+POST {{baseUrl}}/api/trade/announce
+Content-Type: application/json
+
+{
+  "device": "e2e-target",
+  "roms": []
+}
+
+{%
+  test('status 200', () => {
+    expect(response.status).toBe(200);
+  });
+%}
+
+### announce without device name returns 400
+POST {{baseUrl}}/api/trade/announce
+Content-Type: application/json
+
+{ "roms": [] }
+
+{%
+  test('status 400', () => {
+    expect(response.status).toBe(400);
+  });
+%}
+
+### list devices — both should appear
+GET {{baseUrl}}/api/trade/devices
+Accept: application/json
+
+{%
+  test('status 200', () => {
+    expect(response.status).toBe(200);
+  });
+  test('body is array', () => {
+    expect(Array.isArray(response.parsedBody)).toBe(true);
+  });
+  test('contains e2e-source', () => {
+    const names = response.parsedBody.map(d => d.name);
+    expect(names).toContain('e2e-source');
+  });
+  test('e2e-source has ROM', () => {
+    const src = response.parsedBody.find(d => d.name === 'e2e-source');
+    expect(src.roms.length).toBe(1);
+    expect(src.roms[0].name).toBe('pokemon.gba');
+  });
+%}
+
+### GET on /api/trade/devices is idempotent (method check)
+POST {{baseUrl}}/api/trade/devices
+
+{%
+  test('status 405', () => {
+    expect(response.status).toBe(405);
+  });
+%}
+
+### queue a transfer from source to target
+# @name queueTransfer
+POST {{baseUrl}}/api/trade/transfer
+Content-Type: application/json
+
+{
+  "from_device": "e2e-source",
+  "to_device":   "e2e-target",
+  "rom_path":    "gba/pokemon.gba"
+}
+
+{{
+  transferID = response.parsedBody.id;
+}}
+
+{%
+  test('status 200', () => {
+    expect(response.status).toBe(200);
+  });
+  test('has id', () => {
+    expect(response.parsedBody.id).toBeDefined();
+  });
+  test('state is pending_upload', () => {
+    expect(response.parsedBody.state).toBe('pending_upload');
+  });
+  test('from_device correct', () => {
+    expect(response.parsedBody.from_device).toBe('e2e-source');
+  });
+  test('to_device correct', () => {
+    expect(response.parsedBody.to_device).toBe('e2e-target');
+  });
+%}
+
+### queue transfer missing fields returns 400
+POST {{baseUrl}}/api/trade/transfer
+Content-Type: application/json
+
+{ "from_device": "e2e-source" }
+
+{%
+  test('status 400', () => {
+    expect(response.status).toBe(400);
+  });
+%}
+
+### pending work for source — should have one upload
+GET {{baseUrl}}/api/trade/pending?device=e2e-source
+Accept: application/json
+
+{%
+  test('status 200', () => {
+    expect(response.status).toBe(200);
+  });
+  test('one upload pending', () => {
+    expect(response.parsedBody.uploads.length).toBe(1);
+  });
+  test('upload peer is e2e-target', () => {
+    expect(response.parsedBody.uploads[0].peer).toBe('e2e-target');
+  });
+  test('no downloads for source', () => {
+    expect(response.parsedBody.downloads.length).toBe(0);
+  });
+%}
+
+### pending work for target — nothing yet (ROM not uploaded)
+GET {{baseUrl}}/api/trade/pending?device=e2e-target
+Accept: application/json
+
+{%
+  test('status 200', () => {
+    expect(response.status).toBe(200);
+  });
+  test('no downloads yet', () => {
+    expect(response.parsedBody.downloads.length).toBe(0);
+  });
+%}
+
+### pending missing device param returns 400
+GET {{baseUrl}}/api/trade/pending
+
+{%
+  test('status 400', () => {
+    expect(response.status).toBe(400);
+  });
+%}
+
+### source uploads the ROM
+POST {{baseUrl}}/api/trade/upload/gba/pokemon.gba?transfer={{transferID}}
+Content-Type: application/octet-stream
+
+E2E_ROM_BYTES_PLACEHOLDER
+
+{%
+  test('status 200', () => {
+    expect(response.status).toBe(200);
+  });
+  test('body status ok', () => {
+    expect(response.parsedBody.status).toBe('ok');
+  });
+%}
+
+### upload with missing transfer id returns 400
+POST {{baseUrl}}/api/trade/upload/gba/pokemon.gba
+Content-Type: application/octet-stream
+
+data
+
+{%
+  test('status 400', () => {
+    expect(response.status).toBe(400);
+  });
+%}
+
+### pending work for target — now has one download
+GET {{baseUrl}}/api/trade/pending?device=e2e-target
+Accept: application/json
+
+{%
+  test('status 200', () => {
+    expect(response.status).toBe(200);
+  });
+  test('one download ready', () => {
+    expect(response.parsedBody.downloads.length).toBe(1);
+  });
+  test('download peer is e2e-source', () => {
+    expect(response.parsedBody.downloads[0].peer).toBe('e2e-source');
+  });
+%}
+
+### target fetches the ROM
+GET {{baseUrl}}/api/trade/fetch/gba/pokemon.gba?transfer={{transferID}}&device=e2e-target
+
+{%
+  test('status 200', () => {
+    expect(response.status).toBe(200);
+  });
+  test('content-type octet-stream', () => {
+    expect(response.headers['content-type']).toBe('application/octet-stream');
+  });
+  test('content-disposition contains filename', () => {
+    expect(response.headers['content-disposition']).toContain('pokemon.gba');
+  });
+  test('body matches uploaded ROM', () => {
+    expect(response.body).toContain('E2E_ROM_BYTES_PLACEHOLDER');
+  });
+%}
+
+### fetch wrong device returns 400
+POST {{baseUrl}}/api/trade/announce
+Content-Type: application/json
+
+{ "device": "e2e-source", "roms": [] }
+
+# @name queueTransfer2
+POST {{baseUrl}}/api/trade/transfer
+Content-Type: application/json
+
+{
+  "from_device": "e2e-source",
+  "to_device":   "e2e-target",
+  "rom_path":    "gba/other.gba"
+}
+
+{{
+  transferID2 = response.parsedBody.id;
+}}
+
+POST {{baseUrl}}/api/trade/upload/gba/other.gba?transfer={{transferID2}}
+Content-Type: application/octet-stream
+
+OTHER_ROM_DATA
+
+GET {{baseUrl}}/api/trade/fetch/gba/other.gba?transfer={{transferID2}}&device=e2e-source
+
+{%
+  test('wrong device returns 400', () => {
+    expect(response.status).toBe(400);
+  });
+%}
