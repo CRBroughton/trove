@@ -5,7 +5,7 @@ stores saves in a git working tree, and serves a web UI for browsing, restoring 
 copying ROMs between devices on your local network. There is no authentication - this is intended
 for personal use on a trusted LAN.
 
-> **trove v0.4.0** - early development; unstable, APIs may change. Use at your own risk. Trove facilitates ROM transfers between devices on local networks and does not host ROMs.
+> **trove v0.4.3** - early development; unstable, APIs may change. Use at your own risk. Trove facilitates ROM transfers between devices on local networks and does not host ROMs.
 
 ---
 
@@ -62,7 +62,6 @@ ROMS_DIR="/storage/roms"            # ROM root for trading (set to "" to disable
 ### 3. Create the event hooks
 
 ```sh
-# on the Anbernic:
 mkdir -p /storage/.config/emulationstation/scripts/game-start
 mkdir -p /storage/.config/emulationstation/scripts/game-end
 ```
@@ -84,11 +83,24 @@ chmod +x /storage/.config/emulationstation/scripts/game-start/trove.sh \
          /storage/.config/emulationstation/scripts/game-end/trove.sh
 ```
 
-### 4. Test manually
+### 4. Add Trove Trade to Tools
+
+```sh
+cat > "/storage/.config/distribution/modules/Trove Trade.sh" << 'EOF'
+#!/bin/bash
+/storage/.config/trove/sync.sh trade
+EOF
+chmod +x "/storage/.config/distribution/modules/Trove Trade.sh"
+```
+
+Appears under Tools in EmulationStation. Launch it when you want to trade ROMs.
+
+### 5. Test manually
 
 ```sh
 /storage/.config/trove/sync.sh pull
 /storage/.config/trove/sync.sh push
+/storage/.config/trove/sync.sh trade
 ```
 
 ---
@@ -110,7 +122,7 @@ ssh root@DEVICE_IP "chmod +x /userdata/system/scripts/trove/sync.sh"
 
 ```sh
 SERVER="http://192.168.x.x:8080"   # LAN IP of your trove server
-DEVICE_NAME="trimui"                # unique name for this device
+DEVICE_NAME="brick"                 # unique name for this device
 ROMS_DIR="/userdata/roms"           # ROM root for trading (set to "" to disable)
 ```
 
@@ -134,51 +146,34 @@ Batocera discovers any executable in `/userdata/system/scripts/<name>/` and
 calls it with events like `gameStart` and `gameStop`. The dispatcher maps
 these to push and pull on `sync.sh`.
 
-### 4. Test manually
-
-```sh
-/userdata/system/scripts/trove/sync.sh pull
-/userdata/system/scripts/trove/sync.sh push
-```
-
----
-
-## ROM Trading
-
-The ⇌ TRADE tab in the web UI shows all devices that have announced themselves on your local network. Select a ROM from one device and hit SEND to copy it to another. Trove facilitates ROM transfers between devices on your local network and does not host ROMs. ROMs are held in a temp file only while in-flight and deleted after delivery.
-
-Run `sync.sh trade` to announce your ROM library and process any pending transfers in one step. Wire this up as a launchable entry in EmulationStation so you can trigger it from the device menu.
-
-### Anbernic (AmberELEC)
-
-```sh
-cat > /storage/.config/distribution/modules/Trove\ Trade.sh << 'EOF'
-#!/bin/bash
-/storage/.config/trove/sync.sh trade
-EOF
-chmod +x "/storage/.config/distribution/modules/Trove Trade.sh"
-```
-
-Appears under Tools in EmulationStation.
-
-### TrimUI Brick (Batocera / Knulli)
+### 4. Add Trove Trade to Ports
 
 ```sh
 mkdir -p /userdata/roms/ports
-cat > /userdata/roms/ports/Trove\ Trade.sh << 'EOF'
+cat > "/userdata/roms/ports/Trove Trade.sh" << 'EOF'
 #!/bin/bash
 /userdata/system/scripts/trove/sync.sh trade
 EOF
 chmod +x "/userdata/roms/ports/Trove Trade.sh"
 ```
 
-Appears under Ports in EmulationStation.
+Appears under Ports in EmulationStation. Launch it when you want to trade ROMs.
+
+### 5. Test manually
 
 ```sh
-# or run directly
-/storage/.config/trove/sync.sh trade        # Anbernic
-/userdata/system/scripts/trove/sync.sh trade  # Brick
+/userdata/system/scripts/trove/sync.sh pull
+/userdata/system/scripts/trove/sync.sh push
+/userdata/system/scripts/trove/sync.sh trade
 ```
+
+---
+
+## ROM Trading
+
+The ⇌ TRADE tab in the web UI shows all devices on your local network. Select a ROM from one device and hit SEND to copy it to another. Trove facilitates ROM transfers between devices on your local network and does not host ROMs. ROMs are held in a temp file only while in-flight and deleted after delivery.
+
+To trade, launch **Trove Trade** from EmulationStation on both devices (set up in the device sections above). This runs `sync.sh trade` which announces the device's ROM library to the server and processes any pending transfers. Both devices must announce before they appear in the TRADE tab.
 
 ---
 
