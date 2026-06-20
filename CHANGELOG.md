@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2026-06-20
+
+### Added
+
+- ROM trading panel: dynamic device grid showing each device's ROM library
+- Server brokers transfers between devices via temporary storage, no permanent ROM files kept
+- SSE live updates: device presence and transfer state push instantly to the browser
+- In Flight bar shows transfer state (UPLOADING / DOWNLOADING / COMPLETE) with device instructions
+- Confirmation modal when sending a ROM the target device already has
+- `trade-announce` sync script mode: scans ROM directory and registers device with server
+- `trade-check` sync script mode: polls for pending uploads/downloads and executes them
+- Trove Trade entry in EmulationStation Tools (Anbernic) and Ports (Batocera) for one-tap trading
+
 ## [0.3.1] - 2026-06-20
 
 ### Fixed

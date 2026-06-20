@@ -16,4 +16,4 @@
 *.sav
 *.state
 
-result
+result.local/
