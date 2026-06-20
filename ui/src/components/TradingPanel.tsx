@@ -125,11 +125,7 @@ export function TradingPanel() {
         <div style={{ fontSize: 56 }}>📡</div>
         <div style={{ fontWeight: 800, fontSize: 20 }}>NO DEVICES ONLINE</div>
         <div style={{ color: 'var(--muted)', fontSize: 13, maxWidth: 320 }}>
-          Run
-          {' '}
-          <code style={{ fontFamily: 'var(--mono)', background: 'var(--surface2)', padding: '1px 5px', border: '1px solid var(--border)' }}>sync.sh trade-announce</code>
-          {' '}
-          on your devices to make them visible here.
+          Launch <strong>Trove Trade</strong> on your devices to make them visible here.
         </div>
       </div>
     )
