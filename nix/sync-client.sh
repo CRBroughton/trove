@@ -6,8 +6,10 @@
 # Config — edit these:
 SERVER="http://YOUR_TAILSCALE_IP:8080"   # your NixOS server's Tailscale IP
 SAVES_DIR="/storage/roms/saves"           # adjust if different on your device
+ROMS_DIR="/storage/roms"                  # ROM root for trade-announce (set to "" to disable trading)
 DEVICE_NAME="device1"                     # change to device2 on the second unit
 EXTENSIONS="srm sav state"               # file types to sync
+ROM_EXTENSIONS="gba gbc gb nes snes smd gen smc n64 z64 pce nds"   # ROM types to announce (md excluded — clashes with Markdown)
 SENTINEL="/storage/.config/trove/last-pull"   # touched after each pull; push uses it as a baseline
 DIRTY="/storage/.config/trove/dirty"         # exists when unpushed changes are present
 
@@ -81,9 +83,85 @@ pull_save() {
   fi
 }
 
+trade_announce() {
+  [ -z "$ROMS_DIR" ] && { log "ROMS_DIR not set — skipping trade announce"; return; }
+  [ -d "$ROMS_DIR" ] || { log "ROMS_DIR not found: $ROMS_DIR"; return; }
+
+  # Build JSON array of ROM entries
+  JSON='{"device":"'"$DEVICE_NAME"'","roms":['
+  FIRST=true
+  for EXT in $ROM_EXTENSIONS; do
+    while IFS= read -r f; do
+      REL="${f#$ROMS_DIR/}"
+      NAME=$(basename "$f")
+      SIZE=$(wc -c < "$f" 2>/dev/null | awk '{print $1+0}' || echo 0)
+      $FIRST || JSON="$JSON,"
+      JSON="$JSON{\"name\":\"$NAME\",\"path\":\"$REL\",\"size\":$SIZE}"
+      FIRST=false
+    done < <(find "$ROMS_DIR" -maxdepth 3 -type f -name "*.${EXT}")
+  done
+  JSON="$JSON]}"
+
+  curl -sf --max-time 5 \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -d "$JSON" \
+    "$SERVER/api/trade/announce" > /dev/null && log "trade: announced to $SERVER" || log "trade: announce failed"
+}
+
+trade_check() {
+  [ -z "$ROMS_DIR" ] && return
+
+  PENDING=$(curl -sf --max-time 5 "$SERVER/api/trade/pending?device=$DEVICE_NAME")
+  [ -z "$PENDING" ] && return
+
+  # Extract the uploads section (between "uploads":[ and the matching ])
+  UPLOADS_SECTION=$(echo "$PENDING" | grep -o '"uploads":\[[^]]*\]' | grep -o '\[.*\]')
+  DOWNLOADS_SECTION=$(echo "$PENDING" | grep -o '"downloads":\[[^]]*\]' | grep -o '\[.*\]')
+
+  # Handle uploads — source device pushes ROM to server
+  if [ -n "$UPLOADS_SECTION" ] && [ "$UPLOADS_SECTION" != "[]" ]; then
+    echo "$UPLOADS_SECTION" | grep -o '"id":"[^"]*","rom_path":"[^"]*"' | \
+    while IFS= read -r entry; do
+      ID=$(echo "$entry" | cut -d'"' -f4)
+      ROM_PATH=$(echo "$entry" | grep -o '"rom_path":"[^"]*"' | cut -d'"' -f4)
+      SRC="$ROMS_DIR/$ROM_PATH"
+      if [ -f "$SRC" ]; then
+        ENC=$(urlencode "$ROM_PATH")
+        curl -sf --max-time 120 \
+          -X POST \
+          -H "Content-Type: application/octet-stream" \
+          --data-binary "@$SRC" \
+          "$SERVER/api/trade/upload/$ENC?transfer=$ID" > /dev/null \
+          && log "trade: uploaded $ROM_PATH (transfer $ID)" \
+          || log "trade: upload failed for $ROM_PATH"
+      else
+        log "trade: ROM not found locally: $SRC"
+      fi
+    done
+  fi
+
+  # Handle downloads — target device fetches ROM from server
+  if [ -n "$DOWNLOADS_SECTION" ] && [ "$DOWNLOADS_SECTION" != "[]" ]; then
+    echo "$DOWNLOADS_SECTION" | grep -o '"id":"[^"]*","rom_path":"[^"]*"' | \
+    while IFS= read -r entry; do
+      ID=$(echo "$entry" | cut -d'"' -f4)
+      ROM_PATH=$(echo "$entry" | grep -o '"rom_path":"[^"]*"' | cut -d'"' -f4)
+      DEST="$ROMS_DIR/$ROM_PATH"
+      ENC=$(urlencode "$ROM_PATH")
+      mkdir -p "$(dirname "$DEST")"
+      curl -sf --max-time 120 \
+        -o "$DEST" \
+        "$SERVER/api/trade/fetch/$ENC?transfer=$ID&device=$DEVICE_NAME" \
+        && log "trade: received $ROM_PATH (transfer $ID)" \
+        || log "trade: download failed for $ROM_PATH"
+    done
+  fi
+}
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 
-DIRECTION=${1:-push}   # "push" or "pull"
+DIRECTION=${1:-push}   # "push", "pull", "trade-announce", or "trade-check"
 
 if ! check_server; then
   log "server unreachable at $SERVER — skipping sync"
@@ -103,7 +181,19 @@ push_changed_files() {
   $PUSH_OK
 }
 
-if [ "$DIRECTION" = "push" ]; then
+if [ "$DIRECTION" = "trade-announce" ]; then
+  trade_announce
+  exit 0
+
+elif [ "$DIRECTION" = "trade-check" ]; then
+  if ! check_server; then
+    log "server unreachable — skipping trade check"
+    exit 0
+  fi
+  trade_check
+  exit 0
+
+elif [ "$DIRECTION" = "push" ]; then
   log "pushing saves to $SERVER…"
   FIND_FILTER=()
   [ -f "$SENTINEL" ] && FIND_FILTER=(-newer "$SENTINEL")
@@ -116,6 +206,9 @@ if [ "$DIRECTION" = "push" ]; then
   log "push done"
 
 elif [ "$DIRECTION" = "pull" ]; then
+  # Announce ROM list to enable trading
+  trade_announce
+
   # If there are unpushed local changes, push them first before pulling
   if [ -f "$DIRTY" ]; then
     log "unpushed changes detected — pushing before pull…"
