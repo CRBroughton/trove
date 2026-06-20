@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
+	"time"
 
 	"github.com/crbroughton/trove/internal/trade"
 )
@@ -24,10 +25,16 @@ func (h *tradeHandler) events(w http.ResponseWriter, r *http.Request) {
 	ch := h.store.Subscribe()
 	defer h.store.Unsubscribe(ch)
 
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
 	for {
 		select {
 		case <-r.Context().Done():
 			return
+		case <-ticker.C:
+			fmt.Fprintf(w, ": ping\n\n")
+			flusher.Flush()
 		case <-ch:
 			fmt.Fprintf(w, "data: refresh\n\n")
 			flusher.Flush()
