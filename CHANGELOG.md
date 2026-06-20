@@ -2,12 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.1] - 2026-06-20
+
+### Fixed
+
+- BusyBox-compatible date parsing for mtime comparison (was silently broken on AmberELEC/Anbernic)
+
 ## [0.3.0] - 2026-06-20
 
 ### Fixed
 
 - Sync client no longer overwrites newer local saves with older server versions
-- BusyBox-compatible date parsing for mtime comparison on AmberELEC/Anbernic devices
 - Persistent dirty flag (survives reboot) tracks unsynced saves across power cycles
 - Pull is aborted entirely if push fails, protecting local saves
 - Fixed subshell bug where push failures were silently ignored

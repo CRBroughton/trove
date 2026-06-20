@@ -5,7 +5,7 @@ stores saves in a git working tree, and serves a web UI for browsing and
 restoring history. Devices talk to it over your local network. There is no
 authentication - this is intended for personal use on a trusted LAN.
 
-> **trove v0.3.0** — early development; unstable, APIs may change. Use at your own risk.
+> **trove v0.3.1** — early development; unstable, APIs may change. Use at your own risk.
 
 ---
 
