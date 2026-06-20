@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.3] - 2026-06-20
+
+### Fixed
+
+- SSE event stream sends a keepalive ping every 30s to prevent NAT/router dropping idle connections
+
 ## [0.4.2] - 2026-06-20
 
 ### Added
