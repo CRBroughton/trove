@@ -10,7 +10,8 @@ ROMS_DIR="/storage/roms"                  # ROM root for trade-announce (set to 
 DEVICE_NAME="device1"                     # change to device2 on the second unit
 EXTENSIONS="srm sav state"               # file types to sync
 ROM_EXTENSIONS="gba gbc gb nes snes smd gen smc n64 z64 pce nds"   # ROM types to announce (md excluded — clashes with Markdown)
-SENTINEL="/storage/.config/trove/last-pull"   # touched after each pull; push uses it as a baseline
+SENTINEL="/storage/.config/trove/last-pull"   # touched after each pull
+PUSH_SENTINEL="/storage/.config/trove/last-push"  # touched after each successful push; push uses this as baseline
 DIRTY="/storage/.config/trove/dirty"         # exists when unpushed changes are present
 
 mkdir -p "$(dirname "$SENTINEL")"
@@ -215,8 +216,9 @@ elif [ "$DIRECTION" = "trade-check" ]; then
 elif [ "$DIRECTION" = "push" ]; then
   log "pushing saves to $SERVER…"
   FIND_FILTER=()
-  [ -f "$SENTINEL" ] && FIND_FILTER=(-newer "$SENTINEL")
+  [ -f "$PUSH_SENTINEL" ] && FIND_FILTER=(-newer "$PUSH_SENTINEL")
   if push_changed_files "${FIND_FILTER[@]}"; then
+    touch "$PUSH_SENTINEL"
     rm -f "$DIRTY"
   else
     touch "$DIRTY"
@@ -229,9 +231,10 @@ elif [ "$DIRECTION" = "pull" ]; then
   # If there are unpushed local changes, push them first before pulling
   if [ -f "$DIRTY" ]; then
     log "unpushed changes detected — pushing before pull…"
-    FIND_FILTER=()   # push all saves if no sentinel
-    [ -f "$SENTINEL" ] && FIND_FILTER=(-newer "$SENTINEL")
+    FIND_FILTER=()
+    [ -f "$PUSH_SENTINEL" ] && FIND_FILTER=(-newer "$PUSH_SENTINEL")
     if push_changed_files "${FIND_FILTER[@]}"; then
+      touch "$PUSH_SENTINEL"
       rm -f "$DIRTY"
     else
       log "push still failing — pull aborted to protect local saves"

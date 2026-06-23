@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.5] - 2026-06-23
+
+### Fixed
+
+- Push now uses a separate `last-push` sentinel instead of `last-pull`, so a pull running at game-start no longer hides pre-existing saves from the next push
+
 ## [0.4.4] - 2026-06-20
 
 ### Fixed
