@@ -5,7 +5,7 @@ stores saves in a git working tree, and serves a web UI for browsing, restoring 
 copying ROMs between devices on your local network. There is no authentication - this is intended
 for personal use on a trusted LAN.
 
-> **trove v0.4.3** - early development; unstable, APIs may change. Use at your own risk. Trove facilitates ROM transfers between devices on local networks and does not host ROMs.
+> **trove v0.4.5** - early development; unstable, APIs may change. Use at your own risk. Trove facilitates ROM transfers between devices on local networks and does not host ROMs.
 
 ---
 
@@ -56,6 +56,7 @@ ssh root@DEVICE_IP "chmod +x /storage/.config/trove/sync.sh"
 ```sh
 SERVER="http://192.168.x.x:8080"   # LAN IP of your trove server
 DEVICE_NAME="anbernic"              # unique name for this device
+SAVES_DIR="/storage/roms"           # AmberELEC saves alongside ROMs, not in a subdirectory
 ROMS_DIR="/storage/roms"            # ROM root for trading (set to "" to disable)
 ```
 
@@ -134,6 +135,7 @@ ssh root@DEVICE_IP "chmod +x /userdata/system/scripts/trove/sync.sh"
 ```sh
 SERVER="http://192.168.x.x:8080"   # LAN IP of your trove server
 DEVICE_NAME="brick"                 # unique name for this device
+SAVES_DIR="/userdata/saves"         # Batocera/Knulli saves directory
 ROMS_DIR="/userdata/roms"           # ROM root for trading (set to "" to disable)
 ```
 

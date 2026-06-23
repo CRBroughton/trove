@@ -5,7 +5,7 @@
 #
 # Config — edit these:
 SERVER="http://YOUR_SERVER_IP:8080"       # your trove server IP and port
-SAVES_DIR="/storage/roms"                 # AmberELEC: saves live alongside ROMs; Batocera: /userdata/roms
+SAVES_DIR="/storage/roms"                 # AmberELEC: saves live alongside ROMs; Batocera/Knulli: /userdata/saves
 ROMS_DIR="/storage/roms"                  # ROM root for trade-announce (set to "" to disable trading)
 DEVICE_NAME="device1"                     # unique name for this device
 EXTENSIONS="srm sav state"               # file types to sync
