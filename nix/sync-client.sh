@@ -4,10 +4,10 @@
 # Runs on game-start (pull) and game-stop (push).
 #
 # Config — edit these:
-SERVER="http://YOUR_TAILSCALE_IP:8080"   # your NixOS server's Tailscale IP
-SAVES_DIR="/storage/roms/saves"           # adjust if different on your device
+SERVER="http://YOUR_SERVER_IP:8080"       # your trove server IP and port
+SAVES_DIR="/storage/roms"                 # AmberELEC: saves live alongside ROMs; Batocera: /userdata/roms
 ROMS_DIR="/storage/roms"                  # ROM root for trade-announce (set to "" to disable trading)
-DEVICE_NAME="device1"                     # change to device2 on the second unit
+DEVICE_NAME="device1"                     # unique name for this device
 EXTENSIONS="srm sav state"               # file types to sync
 ROM_EXTENSIONS="gba gbc gb nes snes smd gen smc n64 z64 pce nds"   # ROM types to announce (md excluded — clashes with Markdown)
 SENTINEL="/storage/.config/trove/last-pull"   # touched after each pull
